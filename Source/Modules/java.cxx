@@ -448,10 +448,11 @@ public:
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
       if (outfile_h) {
-	String *filename = Swig_file_filename(outfile_h);
-	Printf(f_directors, "#include \"%s\"\n\n", filename);
-	Delete(filename);
+        String *filename = Swig_file_filename(outfile_h);
+        Printf(f_directors, "#include \"%s\"\n\n", filename);
+        Delete(filename);
       }
+      Printf(f_directors, "#include <mutex>");
     }
 
     Printf(f_runtime, "\n");
@@ -4727,7 +4728,9 @@ public:
       Printf(w->def, "};\n");
     }
 
+    Printf(w->code, "static std::mutex directorMutex;\n");
     Printf(w->code, "if (swig_set_self(jenv, jself, swig_mem_own, weak_global)) {\n");
+    Printf(w->code, "std::lock_guard<std::mutex> lock(directorMutex);\n");
     Printf(w->code, "if (!baseclass) {\n");
     Printf(w->code, "baseclass = jenv->FindClass(\"%s\");\n", internal_classname);
     Printf(w->code, "if (!baseclass) return;\n");
