@@ -452,7 +452,7 @@ public:
         Printf(f_directors, "#include \"%s\"\n\n", filename);
         Delete(filename);
       }
-      Printf(f_directors, "#include <mutex>");
+      Printf(f_directors, "#include <mutex>\n");
     }
 
     Printf(f_runtime, "\n");
