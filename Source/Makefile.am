@@ -70,6 +70,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/s-exp.cxx		\
 		Modules/scilab.cxx		\
 		Modules/swigmain.cxx		\
+		Modules/swift.cxx \
 		Modules/tcl8.cxx		\
 		Modules/typepass.cxx		\
 		Modules/uffi.cxx		\

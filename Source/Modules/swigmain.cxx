@@ -51,6 +51,7 @@ extern "C" {
   Language *swig_uffi(void);
   Language *swig_r(void);
   Language *swig_scilab(void);
+  Language *swig_swift(void);
   Language *swig_go(void);
   Language *swig_d(void);
   Language *swig_javascript(void);
@@ -93,6 +94,7 @@ static swig_module modules[] = {
   {"-r", swig_r, "R (aka GNU S)"},
   {"-ruby", swig_ruby, "Ruby"},
   {"-scilab", swig_scilab, "Scilab"},
+  {"-swift", swig_swift, "Swift"},
   {"-sexp", swig_sexp, "Lisp S-Expressions"},
   {"-tcl", swig_tcl, "Tcl"},
   {"-tcl8", swig_tcl, 0},
