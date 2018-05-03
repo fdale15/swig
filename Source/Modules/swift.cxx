@@ -1,4 +1,7 @@
 #include "swigmod.h"
+#include <limits.h>		// for INT_MAX
+#include "cparse.h"
+#include <ctype.h>
 
 class SWIFT : public Language {
 protected:
@@ -72,18 +75,81 @@ public:
         return SWIG_OK;
     }
 
-    int functionWrapper(Node *n) override {
-        /* Get some useful attributes of this function */
+//    int functionWrapper(Node *n) override {
+//        /* Get some useful attributes of this function */
+//        String   *name   = Getattr(n, "sym:name");
+//        SwigType *type   = Getattr(n, "type");
+//        ParmList *parms  = Getattr(n, "parms");
+//        String   *parmstr= ParmList_str_defaultargs(parms); // to string
+//        String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
+//        String   *action = Getattr(n, "wrap:action");
+//
+//        Printf(f_wrappers, "%s {\n", func);
+//        Printf(f_wrappers, "\t%s\n", action);
+//        Printf(f_wrappers, "}\n\n");
+//        return SWIG_OK;
+//     }
+
+    virtual int functionWrapper(Node *n) {
+        /* get useful attributes */
+        String *action   = Getattr(n, "wrap:action");
         String   *name   = Getattr(n, "sym:name");
         SwigType *type   = Getattr(n, "type");
         ParmList *parms  = Getattr(n, "parms");
-        String   *parmstr= ParmList_str_defaultargs(parms); // to string
-        String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-        String   *action = Getattr(n, "wrap:action");
+        String   *parmstr= ParmList_str_defaultargs(parms);
 
-        Printf(f_wrappers, "functionWrapper   : %s\n", func);
-        Printf(f_wrappers, "           action : %s\n", action);
+        String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
+        String *returnType = SwigType_str(type, NewStringf(""));
+
+        bool is_void_return = (Cmp(returnType, "void") == 0);
+
+        /* create the wrapper object */
+        Wrapper *wrapper = NewWrapper();
+
+        /* create the functions wrappered name */
+        String *wname = Swig_name_wrapper(name);
+
+        /* write the wrapper function definition */
+        Printv(wrapper->def, func, " {\n", NIL);
+
+        if (!is_void_return) {
+            Wrapper_add_localv(wrapper, "result", returnType, "result = 0", NIL);
+        }
+
+        /* write the list of locals/arguments required */
+//        emit_args(type, parms, wrapper);
+        // Emit all of the local variables for holding arguments.
+        emit_parameter_variables(parms, wrapper);
+
+        /* Attach the standard typemaps */
+        emit_attach_parmmaps(parms, wrapper);
+
+        int num_arguments = emit_num_arguments(parms);
+
+        // Now walk the function parameter list and generate code to get arguments
+
+        Printv(wrapper->code, action, "\n", NIL);
+
+        if (!is_void_return) {
+            Printv(wrapper->code, "return result;\n", NIL);
+        }
+        Printv(wrapper->code, "}\n", NIL);
+
+        /* Dump the function out */
+        Wrapper_print(wrapper, f_wrappers);
+
+        /* tidy up */
+        Delete(wname);
+        Delete(func);
+        Delete(returnType);
+        DelWrapper(wrapper);
+
         return SWIG_OK;
+    }
+
+private:
+    void emit_args(SwigType *type, ParmList *parms, Wrapper *wrapper) {
+
     }
 };
 
