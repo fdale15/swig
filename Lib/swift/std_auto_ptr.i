@@ -6,9 +6,19 @@
  */
 
 %define %auto_ptr(TYPE)
+%typemap (jni) std::auto_ptr<TYPE > "jlong"
+%typemap (jtype) std::auto_ptr<TYPE > "long"
+%typemap (jstype) std::auto_ptr<TYPE > "$typemap(jstype, TYPE)"
+
 %typemap (out) std::auto_ptr<TYPE > %{
-   %set_output(SWIG_NewPointerObj($1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN | %newpointer_flags));
+   jlong lpp = 0;
+   *(TYPE**) &lpp = $1.release();
+   $result = lpp;
 %}
+%typemap(javaout) std::auto_ptr<TYPE > {
+     long cPtr = $jnicall;
+     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+   }
 %template() std::auto_ptr<TYPE >;
 %enddef
 
