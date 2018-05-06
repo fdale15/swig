@@ -934,8 +934,10 @@ public:
             String *im_param_type = NewString("");
             String *c_param_type = NewString("");
             String *arg = NewString("");
+            String *parg = NewString("");
 
             Printf(arg, "%s", ln);
+            Printf(parg, "p_%s", arg);
 
             /* Get the JNI C types of the parameter */
             if ((tm = Getattr(p, "tmap:jni"))) {
@@ -956,10 +958,10 @@ public:
                 Printf(imclass_class_code, ", ");
                 Printf(f->def, ", ");
             }
-            Printf(imclass_class_code, "%s p_%s", im_param_type, arg);
+            Printf(imclass_class_code, "%s %s", im_param_type, parg);
 
             // Add parameter to C function
-            Printv(f->def, c_param_type, " p_", arg, NIL);
+            Printv(f->def, c_param_type, " ", parg, NIL);
 
             ++gencomma;
 
@@ -979,7 +981,7 @@ public:
                 Replaceall(tm, "$source", arg);	/* deprecated */
                 Replaceall(tm, "$target", ln);	/* deprecated */
                 Replaceall(tm, "$arg", arg);	/* deprecated? */
-                Replaceall(tm, "$input", arg);
+                Replaceall(tm, "$input", parg);
                 Setattr(p, "emit:input", arg);
 
                 Printf(nondir_args, "%s\n", tm);
@@ -993,6 +995,7 @@ public:
             Delete(im_param_type);
             Delete(c_param_type);
             Delete(arg);
+            Delete(parg);
         }
 
         Printv(f->code, nondir_args, NIL);
