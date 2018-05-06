@@ -1454,17 +1454,17 @@ public:
                     // Wrap (non-anonymous) enum using the typesafe enum pattern
                     if (Getattr(n, "enumvalue")) {
                         String *value = enumValue(n);
-                        Printf(enum_code, "  %s final static %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
+                        Printf(enum_code, "  %s static let %s: %s = %s(\"%s\", %s)\n", methodmods, symname, return_type, return_type, symname, value);
                         Delete(value);
                     } else {
-                        Printf(enum_code, "  %s final static %s %s = new %s(\"%s\");\n", methodmods, return_type, symname, return_type, symname);
+                        Printf(enum_code, "  %s static let %s: %s = %s(\"%s\")\n", methodmods, symname, return_type, return_type, symname);
                     }
                 } else {
                     // Simple integer constants
                     // Note these are always generated for anonymous enums, no matter what enum_feature is specified
                     // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
                     String *value = enumValue(n);
-                    Printf(enum_code, "  %s final static %s %s = %s;\n", methodmods, return_type, symname, value);
+                    Printf(enum_code, "  %s static %s %s = %s;\n", methodmods, return_type, symname, value);
                     Delete(value);
                 }
                 Delete(return_type);
@@ -1836,7 +1836,7 @@ public:
     void upcastsCode(SwigType *smart, String *upcast_method_name, String *c_classname, String *c_baseclass) {
         String *jniname = makeValidJniName(upcast_method_name);
         String *wname = Swig_name_wrapper(jniname);
-        Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
+        Printf(imclass_cppcasts_code, " long long %s(long long jarg1);\n", upcast_method_name);
         if (smart) {
             SwigType *bsmart = Copy(smart);
             SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
@@ -1846,13 +1846,12 @@ public:
             Delete(rbaseclass);
             String *smartnamestr = SwigType_namestr(smart);
             String *bsmartnamestr = SwigType_namestr(bsmart);
+
             Printv(upcasts_code,
-                   "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-                   "    jlong baseptr = 0;\n"
+                   "long long ", upcast_method_name, "(long long arg1) {\n",
+                   "    long long baseptr = 0;\n"
                            "    ", smartnamestr, " *argp1;\n"
-                           "    (void)jenv;\n"
-                           "    (void)jcls;\n"
-                           "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
+                           "    argp1 = *(", smartnamestr, " **)&arg1;\n"
                            "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
                            "    return baseptr;\n"
                            "}\n", "\n", NIL);
@@ -1861,11 +1860,9 @@ public:
             Delete(bsmart);
         } else {
             Printv(upcasts_code,
-                   "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-                   "    jlong baseptr = 0;\n"
-                           "    (void)jenv;\n"
-                           "    (void)jcls;\n"
-                           "    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
+                   "long long ", upcast_method_name, "(long long arg1) {\n",
+                   "    long long baseptr = 0;\n"
+                           "    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&arg1;\n"
                            "    return baseptr;\n"
                            "}\n", "\n", NIL);
         }
@@ -1955,8 +1952,8 @@ public:
             Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
         Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
                " $javaclassname",	// Class name and bases
-               (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(interface_list) ?	// Pure Java interfaces
-                                                                     " implements " : "", interface_list, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
+               (*Char(wanted_base)) ? ": " : "", wanted_base, *Char(interface_list) ?	// Pure Java interfaces
+                                                                     ": " : "", interface_list, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
                                                                                                                 typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
                NIL);
 
@@ -2034,7 +2031,9 @@ public:
 
         if (derived) {
             String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-            upcastsCode(smart, upcast_method_name, c_classname, c_baseclass);
+            String *valid_im_name = makeValidIntermediateName(upcast_method_name);
+            upcastsCode(smart, valid_im_name, c_classname, c_baseclass);
+            Delete(valid_im_name);
             Delete(upcast_method_name);
         }
 
@@ -3178,15 +3177,17 @@ public:
                     // Strange hack to change the name
                     Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
                     constantWrapper(n);
-                    value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+                    value = NewStringf("%s()", Swig_name_get(getNSpace(), symname));
                 } else {
                     memberconstantHandler(n);
-                    value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
+                    value = NewStringf("%s()", Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
                 }
                 Delete(newsymname);
             }
         }
-        return value;
+        String *valid_im_name = makeValidIntermediateName(value);
+        Delete(value);
+        return valid_im_name;
     }
 
     /* -----------------------------------------------------------------------------

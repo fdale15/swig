@@ -7,19 +7,19 @@
  * ----------------------------------------------------------------------------- */
 
 // const enum SWIGTYPE & typemaps
-%typemap(jni) const enum SWIGTYPE & "jint"
+%typemap(jni) const enum SWIGTYPE & "int"
 %typemap(jtype) const enum SWIGTYPE & "int"
 %typemap(jstype) const enum SWIGTYPE & "$*javaclassname"
 
 %typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input; 
    $1 = &temp; %}
-%typemap(out) const enum SWIGTYPE &  %{ $result = (jint)*$1; %}
+%typemap(out) const enum SWIGTYPE &  %{ $result = (int)*$1; %}
 
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
    $result = &temp; %}
-%typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE & "$input = (jint)$1;"
+%typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE & "$input = (int)$1;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$*javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) const enum SWIGTYPE & "($javacall).swigValue()"
 
@@ -35,15 +35,15 @@
   }
 
 // enum SWIGTYPE typemaps
-%typemap(jni) enum SWIGTYPE "jint"
+%typemap(jni) enum SWIGTYPE "int"
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "$javaclassname"
 
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
-%typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
+%typemap(out) enum SWIGTYPE  %{ $result = (int)$1; %}
 
 %typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
-%typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE "$input = (jint) $1;"
+%typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE "$input = (int) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
 
@@ -59,7 +59,7 @@
   }
 
 // '$static' will be replaced with either 'static' or nothing depending on whether the enum is an inner Java class or not
-%typemap(javaclassmodifiers) enum SWIGTYPE "public final $static class"
+%typemap(javaclassmodifiers) enum SWIGTYPE "public class"
 %typemap(javabase)           enum SWIGTYPE ""
 %typemap(javacode)           enum SWIGTYPE ""
 %typemap(javaimports)        enum SWIGTYPE ""
@@ -73,44 +73,49 @@
  * The special variable, $enumvalues, is replaced with a comma separated list of all the enum values.
  */
 %typemap(javabody) enum SWIGTYPE %{
-  public final int swigValue() {
-    return swigValue;
+  public final func swigEnumValue() -> Int32 {
+    return swigValue
   }
 
-  public String toString() {
-    return swigName;
+  public func toString() -> String {
+    return swigName
   }
 
-  public static $javaclassname swigToEnum(int swigValue) {
-    if (swigValue < swigValues.length && swigValue >= 0 && swigValues[swigValue].swigValue == swigValue)
-      return swigValues[swigValue];
-    for (int i = 0; i < swigValues.length; i++)
-      if (swigValues[i].swigValue == swigValue)
-        return swigValues[i];
-    throw new IllegalArgumentException("No enum " + $javaclassname.class + " with value " + swigValue);
+  public static func swigToEnum(swigValue: Int32) -> $javaclassname {
+    if (swigValue < swigValues.count && swigValue >= 0 && $javaclassname.swigValues[Int(swigValue)].swigValue == swigValue) {
+      return $javaclassname.swigValues[Int(swigValue)]
+    }
+    for i in 0...(swigValues.count - 1) {
+      if ($javaclassname.swigValues[i].swigValue == swigValue) {
+        return $javaclassname.swigValues[i]
+      }
+    }
+    //TODO: Exception handling.
+    //throw new IllegalArgumentException("No enum " + $javaclassname.class + " with value " + swigValue);
   }
 
-  private $javaclassname(String swigName) {
-    this.swigName = swigName;
-    this.swigValue = swigNext++;
+  private init(_ swigName: String) {
+    self.swigName = swigName
+    self.swigValue = $javaclassname.swigNext
+    $javaclassname.swigNext = $javaclassname.swigNext + 1
   }
 
-  private $javaclassname(String swigName, int swigValue) {
-    this.swigName = swigName;
-    this.swigValue = swigValue;
-    swigNext = swigValue+1;
+  private init(_ swigName: String, _ swigValue: Int32) {
+    self.swigName = swigName
+    self.swigValue = swigValue
+    $javaclassname.swigNext = swigValue+1
   }
 
-  private $javaclassname(String swigName, $javaclassname swigEnum) {
-    this.swigName = swigName;
-    this.swigValue = swigEnum.swigValue;
-    swigNext = this.swigValue+1;
+  private init(_ swigName: String, _ swigEnum: $javaclassname) {
+    self.swigName = swigName
+    self.swigValue = swigEnum.swigValue
+    $javaclassname.swigNext = self.swigValue+1
   }
 
-  private static $javaclassname[] swigValues = { $enumvalues };
-  private static int swigNext = 0;
-  private final int swigValue;
-  private final String swigName;
+  private static let swigValues: [$javaclassname] = [ $enumvalues ];
+  private static var swigNext: Int32 = 0;
+  private final  var swigValue: Int32;
+  private final  var swigName: String;
 %}
 
 %javaenum(typesafe);
