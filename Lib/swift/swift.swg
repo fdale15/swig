@@ -188,25 +188,25 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) long[]       "long[]"
 
 /* Non primitive types */
-%typemap(jni) SWIGTYPE "long"
-%typemap(jtype) SWIGTYPE "long"
+%typemap(jni) SWIGTYPE "long long"
+%typemap(jtype) SWIGTYPE "long long"
 %typemap(jstype) SWIGTYPE "$&javaclassname"
 %typemap(jboxtype) SWIGTYPE "$typemap(jstype, $1_type)"
 
-%typemap(jni) SWIGTYPE [] "long"
-%typemap(jtype) SWIGTYPE [] "long"
+%typemap(jni) SWIGTYPE [] "long long"
+%typemap(jtype) SWIGTYPE [] "long long"
 %typemap(jstype) SWIGTYPE [] "$javaclassname"
 
-%typemap(jni) SWIGTYPE * "long"
-%typemap(jtype) SWIGTYPE * "long"
+%typemap(jni) SWIGTYPE * "long long"
+%typemap(jtype) SWIGTYPE * "long long"
 %typemap(jstype) SWIGTYPE * "$javaclassname"
 
-%typemap(jni) SWIGTYPE & "long"
-%typemap(jtype) SWIGTYPE & "long"
+%typemap(jni) SWIGTYPE & "long long"
+%typemap(jtype) SWIGTYPE & "long long"
 %typemap(jstype) SWIGTYPE & "$javaclassname"
 
-%typemap(jni) SWIGTYPE && "long"
-%typemap(jtype) SWIGTYPE && "long"
+%typemap(jni) SWIGTYPE && "long long"
+%typemap(jtype) SWIGTYPE && "long long"
 %typemap(jstype) SWIGTYPE && "$javaclassname"
 
 /* pointer to a class member */
@@ -219,12 +219,6 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 /* primitive types */
 %typemap(in) bool
 %{ $1 = $input ? true : false; %}
-
-%typemap(directorout) bool
-%{ $result = $input ? true : false; %}
-
-%typemap(javadirectorin) bool "$jniinput"
-%typemap(javadirectorout) bool "$javacall"
 
 %typemap(in) char, 
              signed char, 
@@ -240,61 +234,6 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
              double
 %{ $1 = ($1_ltype)$input; %}
 
-%typemap(directorout) char, 
-             signed char, 
-             unsigned char, 
-             short, 
-             unsigned short, 
-             int, 
-             unsigned int, 
-             long, 
-             unsigned long, 
-             long long, 
-             float, 
-             double
-%{ $result = ($1_ltype)$input; %}
-
-%typemap(directorin, descriptor="Z") bool             "$input = (jboolean) $1;"
-%typemap(directorin, descriptor="C") char             "$input = (jint) $1;"
-%typemap(directorin, descriptor="B") signed char      "$input = (jbyte) $1;"
-%typemap(directorin, descriptor="S") unsigned char    "$input = (jshort) $1;"
-%typemap(directorin, descriptor="S") short            "$input = (jshort) $1;"
-%typemap(directorin, descriptor="I") unsigned short   "$input = (jint) $1;"
-%typemap(directorin, descriptor="I") int              "$input = (jint) $1;"
-%typemap(directorin, descriptor="J") unsigned int     "$input = (jlong) $1;"
-%typemap(directorin, descriptor="I") long             "$input = (jint) $1;"
-%typemap(directorin, descriptor="J") unsigned long    "$input = (jlong) $1;"
-%typemap(directorin, descriptor="J") long long        "$input = (jlong) $1;"
-%typemap(directorin, descriptor="F") float            "$input = (jfloat) $1;"
-%typemap(directorin, descriptor="D") double           "$input = (jdouble) $1;"
-
-%typemap(javadirectorin) char, 
-                         signed char, 
-                         unsigned char, 
-                         short, 
-                         unsigned short, 
-                         int, 
-                         unsigned int, 
-                         long, 
-                         unsigned long, 
-                         long long, 
-                         float, 
-                         double
-  "$jniinput"
-
-%typemap(javadirectorout) char, 
-                          signed char, 
-                          unsigned char, 
-                          short, 
-                          unsigned short, 
-                          int, 
-                          unsigned int, 
-                          long, 
-                          unsigned long, 
-                          long long, 
-                          float, 
-                          double
-  "$javacall"
 
 %typemap(out) bool           %{ $result = (bool)$1; %}
 %typemap(out) char           %{ $result = (char)$1; %}
