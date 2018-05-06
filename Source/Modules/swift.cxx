@@ -868,7 +868,7 @@ public:
 
         is_void_return = (Cmp(c_return_type, "void") == 0);
         if (!is_void_return)
-            Wrapper_add_localv(f, "void*", c_return_type, "result = 0", NIL);
+            Wrapper_add_localv(f, "void*", c_return_type, "_cresult = 0", NIL);
 
         //Printv(f->def, "SWIGEXPORT ", c_return_type, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
         Printv(f->def, c_return_type, " ", wname, "(", NIL);
@@ -942,10 +942,10 @@ public:
                 Printf(imclass_class_code, ", ");
                 Printf(f->def, ", ");
             }
-            Printf(imclass_class_code, "%s %s", im_param_type, arg);
+            Printf(imclass_class_code, "%s p_%s", im_param_type, arg);
 
             // Add parameter to C function
-            Printv(f->def, c_param_type, " ", arg, NIL);
+            Printv(f->def, c_param_type, " p_", arg, NIL);
 
             ++gencomma;
 
@@ -1019,7 +1019,7 @@ public:
                 Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
                 Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
                 Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
-                Replaceall(tm, "$result", "jresult");
+                Replaceall(tm, "$result", "result");
                 Replaceall(tm, "$input", Getattr(p, "emit:input"));
                 Printv(outarg, tm, "\n", NIL);
                 p = Getattr(p, "tmap:argout:next");
@@ -1052,8 +1052,8 @@ public:
             if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
                 addThrows(n, "tmap:out", n);
                 Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
-                Replaceall(tm, "$target", "jresult");	/* deprecated */
-                Replaceall(tm, "$result", "jresult");
+                Replaceall(tm, "$target", "_cresult");	/* deprecated */
+                Replaceall(tm, "$result", "_cresult");
 
                 if (GetFlag(n, "feature:new"))
                     Replaceall(tm, "$owner", "1");
@@ -1101,7 +1101,7 @@ public:
         Printf(f->def, ") {");
 
         if (!is_void_return)
-            Printv(f->code, "    return jresult;\n", NIL);
+            Printv(f->code, "    return _cresult;\n", NIL);
         Printf(f->code, "}\n");
 
         /* Substitute the cleanup code */
@@ -2520,17 +2520,18 @@ public:
                 if (is_interface)
                     Printf(interface_class_code, "%s: %s", arg, param_type);
 
-                if (prematureGarbageCollectionPreventionParameter(pt, p)) {
-                    String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
-                    if (pgcppname) {
-                        String *argname = Copy(pgcppname);
-                        Replaceall(argname, "$javainput", arg);
-                        Printf(imcall, ", %s", argname);
-                        Delete(argname);
-                    } else {
-                        Printf(imcall, ", %s", arg);
-                    }
-                }
+// TODO: Find out if this is necessary.
+//                if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+//                    String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
+//                    if (pgcppname) {
+//                        String *argname = Copy(pgcppname);
+//                        Replaceall(argname, "$javainput", arg);
+//                        Printf(imcall, ", %s", argname);
+//                        Delete(argname);
+//                    } else {
+//                        Printf(imcall, ", %s", arg);
+//                    }
+//                }
 
                 Delete(arg);
                 Delete(param_type);
