@@ -325,7 +325,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
   int i;
 
   if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger nil");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
@@ -352,7 +352,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
   int i;
 
   if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger nil");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
@@ -576,7 +576,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   int i;
 
   if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger nil");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
@@ -605,7 +605,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   int i;
 
   if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger nil");
     return $null;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
@@ -650,7 +650,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
-     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference nil $1_type");
      return $null;
    }
    $1 = *argp; %}
@@ -658,7 +658,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorout) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
-     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected nil return for type $1_type");
      return $null;
    }
    $result = *argp; %}
@@ -692,12 +692,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 }
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is nil");
     return $null;
   } %}
 %typemap(in) SWIGTYPE && %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is nil");
     return $null;
   } %}
 %typemap(out) SWIGTYPE *
@@ -725,13 +725,13 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
-     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected nil return for type $1_type");
      return $null;
    }
    $result = *($&1_ltype)&$input; %}
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &&
 %{ if (!$input) {
-     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected nil return for type $1_type");
      return $null;
    }
    $result = *($&1_ltype)&$input; %}
@@ -740,7 +740,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE &&
 %{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
-%typemap(javadirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($jniinput == 0) ? null : new $javaclassname($jniinput, false)"
+%typemap(javadirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($jniinput == 0) ? nil : new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) SWIGTYPE & "new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) SWIGTYPE && "new $javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$javaclassname.getCPtr($javacall)"
@@ -1164,7 +1164,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 %typemap(javaout) SWIGTYPE (CLASS::*) {
     var cMemberPtr: String = $jnicall
-    return (cMemberPtr == null) ? null : $javaclassname(cMemberPtr, $owner)
+    return (cMemberPtr == nil) ? nil : $javaclassname(cMemberPtr, $owner)
   }
 
 /* Pointer reference typemaps */
@@ -1174,7 +1174,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(javain) SWIGTYPE *const& "$*javaclassname.getCPtr($javainput)"
 %typemap(javaout) SWIGTYPE *const& {
     long cPtr = $jnicall
-    return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner)
+    return (cPtr == 0) ? nil : new $*javaclassname(cPtr, $owner)
   }
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
@@ -1187,7 +1187,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ static $*1_ltype swig_temp;
    swig_temp = *($1_ltype)&$input;
    $result = &swig_temp; %}
-%typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? null : new $*javaclassname($jniinput, false)"
+%typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? nil : new $*javaclassname($jniinput, false)"
 %typemap(javadirectorout) SWIGTYPE *const& "$*javaclassname.getCPtr($javacall)"
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
@@ -1207,13 +1207,14 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   private var swigCPtr: Int64
   internal var swigCMemOwn: Bool
 
-  PTRCTOR_VISIBILITY init(cPtr: Int64, cMemoryOwn: Bool) {
+  PTRCTOR_VISIBILITY init(_ cPtr: Int64, _ cMemoryOwn: Bool) {
     swigCMemOwn = cMemoryOwn
     swigCPtr = cPtr
   }
 
-  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Int64 {
-    return (obj == null) ? 0 : obj.swigCPtr
+  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname?) -> Int64 {
+    let result = obj?.swigCPtr;
+    return (result == nil) ? 0 : result!
   }
 %}
 
@@ -1221,13 +1222,14 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(javabody_derived) TYPE %{
   private var swigCPtr: Int64
 
-  PTRCTOR_VISIBILITY init(cPtr: Int64, cMemoryOwn: Bool) {
+  PTRCTOR_VISIBILITY init(_ cPtr: Int64, _ cMemoryOwn: Bool) {
     self.init($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn)
     swigCPtr = cPtr
   }
 
-  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Int64 {
-    return (obj == null) ? 0 : obj.swigCPtr
+  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname?) -> Int64 {
+    let result = obj?.swigCPtr;
+    return (result == nil) ? 0 : result!
   }
 %}
 %enddef
@@ -1245,8 +1247,9 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     swigCPtr = 0
   }
 
-  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Int64 {
-    return (obj == null) ? 0 : obj.swigCPtr
+  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname?) -> Int64 {
+    let result = obj?.swigCPtr;
+    return (result == nil) ? 0 : result!
   }
 %}
 
@@ -1258,11 +1261,11 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 
   DEFAULTCTOR_VISIBILITY init() {
-    swigCMemberPtr = null
+    swigCMemberPtr = nil
   }
 
-  CPTR_VISIBILITY static func getCMemberPtr(obj: $javaclassname) -> String {
-    return obj.swigCMemberPtr
+  CPTR_VISIBILITY static func getCMemberPtr(obj: $javaclassname?) -> String {
+    return obj?.swigCMemberPtr
   }
 %}
 %enddef

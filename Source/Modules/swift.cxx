@@ -2436,7 +2436,7 @@ public:
         if (is_interface)
             Printf(interface_class_code, "func %s(", proxy_function_name);
 
-        Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
+        Printv(imcall, "$imfuncname(", NIL);
         if (!static_flag) {
             Printf(imcall, "swigCPtr");
 
@@ -2528,9 +2528,9 @@ public:
                         Printf(interface_class_code, ", ");
                 }
                 gencomma = 2;
-                Printf(function_code, "%s %s", param_type, arg);
+                Printf(function_code, "%s: %s", arg, param_type);
                 if (is_interface)
-                    Printf(interface_class_code, "%s %s", param_type, arg);
+                    Printf(interface_class_code, "%s: %s", arg, param_type);
 
                 if (prematureGarbageCollectionPreventionParameter(pt, p)) {
                     String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
@@ -2660,10 +2660,10 @@ public:
             tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
             Printf(im_return_type, "%s", tm);
 
-            Printf(function_code, "  %s init(", methodmods);
+            Printf(function_code, "  %s convenience init(", methodmods);
             Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
 
-            Printv(imcall, full_imclass_name, ".", mangled_overname, "(", NIL);
+            Printv(imcall, mangled_overname, "(", NIL);
 
             /* Attach the non-standard typemaps to the parameter list */
             Swig_typemap_attach_parms("in", l, NULL);
@@ -2836,7 +2836,7 @@ public:
         String *symname = Getattr(n, "sym:name");
 
         if (proxy_flag) {
-            Printv(destructor_call, full_imclass_name, ".", Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
+            Printv(destructor_call, Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
             generateThrowsClause(n, destructor_throws_clause);
         }
         return SWIG_OK;
