@@ -21,7 +21,7 @@
    $result = &temp; %}
 %typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE & "$input = (int)$1;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$*javaclassname.swigToEnum($jniinput)"
-%typemap(javadirectorout) const enum SWIGTYPE & "($javacall).swigValue()"
+%typemap(javadirectorout) const enum SWIGTYPE & "($javacall).swigEnumValue()"
 
 %typecheck(SWIG_TYPECHECK_POINTER) const enum SWIGTYPE & ""
 
@@ -29,7 +29,7 @@
 %{ (void)$1;
    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown"); %}
 
-%typemap(javain) const enum SWIGTYPE & "$javainput.swigValue()"
+%typemap(javain) const enum SWIGTYPE & "$javainput.swigEnumValue()"
 %typemap(javaout) const enum SWIGTYPE & {
     return $*javaclassname.swigToEnum($jnicall);
   }
@@ -44,8 +44,8 @@
 
 %typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
 %typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE "$input = (int) $1;"
-%typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
-%typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
+%typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)!"
+%typemap(javadirectorout) enum SWIGTYPE "($javacall).swigEnumValue()"
 
 %typecheck(SWIG_TYPECHECK_POINTER) enum SWIGTYPE ""
 
@@ -53,9 +53,9 @@
 %{ (void)$1;
    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown"); %}
 
-%typemap(javain) enum SWIGTYPE "$javainput.swigValue()"
+%typemap(javain) enum SWIGTYPE "$javainput.swigEnumValue()"
 %typemap(javaout) enum SWIGTYPE {
-    return $javaclassname.swigToEnum($jnicall);
+    return $javaclassname.swigToEnum($jnicall)!
   }
 
 // '$static' will be replaced with either 'static' or nothing depending on whether the enum is an inner Java class or not
@@ -81,7 +81,7 @@
     return swigName
   }
 
-  public static func swigToEnum(swigValue: Int32) -> $javaclassname {
+  public static func swigToEnum(swigValue: Int32) -> $javaclassname? {
     if (swigValue < swigValues.count && swigValue >= 0 && $javaclassname.swigValues[Int(swigValue)].swigValue == swigValue) {
       return $javaclassname.swigValues[Int(swigValue)]
     }
@@ -92,6 +92,7 @@
     }
     //TODO: Exception handling.
     //throw new IllegalArgumentException("No enum " + $javaclassname.class + " with value " + swigValue);
+    return nil;
   }
 
   private init(_ swigName: String) {
