@@ -127,7 +127,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jboxtype) double,             const double &             "Double"
 
 /* %typemap(jni) char *, char *&, char[ANY], char[]               "char *" */
-%typemap(jtype) char *, char *&, char[ANY], char[]               "String"
+%typemap(jtype) char *, char *&, char[ANY], char[]               "char *"
 %typemap(jstype) char *, char *&, char[ANY], char[]               "String"
 
 /* JNI types */
@@ -210,7 +210,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) SWIGTYPE && "$javaclassname"
 
 /* pointer to a class member */
-%typemap(jni) SWIGTYPE (CLASS::*) "jstring"
+%typemap(jni) SWIGTYPE (CLASS::*) "string"
 %typemap(jtype) SWIGTYPE (CLASS::*) "String"
 %typemap(jstype) SWIGTYPE (CLASS::*) "$javaclassname"
 
@@ -377,7 +377,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
 
-%typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
+%typemap(freearg, noblock=1) char * { /*if ($1) { JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1);*/ }
 %typemap(out, noblock=1) char * { if ($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char * "$jniinput"
 %typemap(javadirectorout) char * "$javacall"
@@ -391,7 +391,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
   $1 = &temp;
 }
-%typemap(freearg, noblock=1) char *& { if ($1 && *$1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)*$1); }
+%typemap(freearg, noblock=1) char *& { /*if ($1 && *$1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)*$1); */ }
 %typemap(out, noblock=1) char *& { if (*$1) $result = JCALL1(NewStringUTF, jenv, (const char *)*$1); }
 
 %typemap(out) void ""
@@ -1320,9 +1320,9 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* String & length */
-%typemap(jni)     (char *STRING, size_t LENGTH) "jbyteArray"
-%typemap(jtype)   (char *STRING, size_t LENGTH) "byte[]"
-%typemap(jstype)  (char *STRING, size_t LENGTH) "byte[]"
+%typemap(jni)     (char *STRING, size_t LENGTH) "const char*"
+%typemap(jtype)   (char *STRING, size_t LENGTH) "const char*"
+%typemap(jstype)  (char *STRING, size_t LENGTH) "String"
 %typemap(javain)  (char *STRING, size_t LENGTH) "$javainput"
 %typemap(freearg) (char *STRING, size_t LENGTH) ""
 %typemap(in)      (char *STRING, size_t LENGTH) {

@@ -20,21 +20,22 @@ namespace std {
 class string;
 
 // string
-%typemap(jni) string "jstring"
-%typemap(jtype) string "String"
+%typemap(jni) string "const char *"
+%typemap(jtype) string "string"
 %typemap(jstype) string "String"
 %typemap(javadirectorin) string "$jniinput"
 %typemap(javadirectorout) string "$javacall"
 
 %typemap(in) string 
-%{ if(!$input) {
+%{  if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
-    } 
-    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+    }
+    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
     if (!$1_pstr) return $null;
     $1.assign($1_pstr);
-    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+    jenv->ReleaseStringUTFChars($input, $1_pstr);
+%}
 
 %typemap(directorout) string 
 %{ if(!$input) {
@@ -42,7 +43,7 @@ class string;
        SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      }
      return $null;
-   } 
+   }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
    if (!$1_pstr) return $null;
    $result.assign($1_pstr);
@@ -53,12 +54,12 @@ class string;
    Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(out) string 
-%{ $result = jenv->NewStringUTF($1.c_str()); %}
+%{ $result = $1.c_str(); %}
 
 %typemap(javain) string "$javainput"
 
 %typemap(javaout) string {
-    return $jnicall;
+    return String.fromCString($jnicall)
   }
 
 %typemap(typecheck) string = char *;
@@ -68,10 +69,11 @@ class string;
    return $null; %}
 
 // const string &
-%typemap(jni) const string & "jstring"
-%typemap(jtype) const string & "String"
+%typemap(jni) const string & "const char *"
+%typemap(jtype) const string & "string"
 %typemap(jstype) const string & "String"
 %typemap(javadirectorin) const string & "$jniinput"
+
 %typemap(javadirectorout) const string & "$javacall"
 
 %typemap(in) const string &
@@ -103,13 +105,16 @@ class string;
    Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(out) const string & 
-%{ $result = jenv->NewStringUTF($1->c_str()); %}
+%{ $result = $1->c_str(); %}
 
 %typemap(javain) const string & "$javainput"
 
 %typemap(javaout) const string & {
     return $jnicall;
-  }
+}
+
+//Convert the Swift string back to a C-style string.
+%typemap(javain) char * %{$javainput.cString(using: String.Encoding.utf8)%}
 
 %typemap(typecheck) const string & = char *;
 
