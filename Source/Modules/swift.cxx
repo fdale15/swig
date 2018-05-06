@@ -248,6 +248,20 @@ public:
         return valid_jni_name;
     }
 
+    /* -----------------------------------------------------------------------------
+    * makeValidIntermediateName()
+    * ----------------------------------------------------------------------------- */
+
+    String *makeValidIntermediateName(const String *name) {
+        String *swift_prefix = NewString("Swift_");
+
+        String *valid_jni_name = makeValidJniName(name);
+        Printf(swift_prefix, "%sSwiftInterface_%s", module_class_name, valid_jni_name);
+        Delete(valid_jni_name);
+
+        return swift_prefix;
+    }
+
     /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */
@@ -447,8 +461,8 @@ public:
             Printv(package_path, package, NIL);
             Replaceall(package_path, ".", "/");
         }
-        String *jniname = makeValidJniName(imclass_name);
-        Printf(wrapper_name, "Swift_%s%s_%%f", jnipackage, jniname);
+        String *jniname = makeValidIntermediateName(package);
+        Printf(wrapper_name, "%s%%f", package);
         Delete(jniname);
 
         Swig_name_register("wrapper", Char(wrapper_name));
@@ -845,7 +859,6 @@ public:
         // Make a wrapper name for this function
         String *jniname = makeValidJniName(overloaded_name);
         String *wname = Swig_name_wrapper(jniname);
-
         Delete(jniname);
 
         /* Attach the non-standard typemaps to the parameter list. */
@@ -870,8 +883,9 @@ public:
         if (!is_void_return)
             Wrapper_add_localv(f, "void*", c_return_type, "_cresult = 0", NIL);
 
-        //Printv(f->def, "SWIGEXPORT ", c_return_type, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
-        Printv(f->def, c_return_type, " ", wname, "(", NIL);
+        String *valid_im_name = makeValidIntermediateName(overloaded_name);
+        Printv(f->def, c_return_type, " ", valid_im_name, "(", NIL);
+        Delete(valid_im_name);
 
         // Usually these function parameters are unused - The code below ensures
         // that compilers do not issue such a warning if configured to do so.
@@ -900,8 +914,8 @@ public:
             }
         }
 
-        String *imjni_name = makeValidJniName(overloaded_name);
-        Printf(imclass_class_code, " %s Swift_%s%s_%s(", im_return_type, jnipackage, imclass_name, imjni_name);
+        String *imjni_name = makeValidIntermediateName(overloaded_name);
+        Printf(imclass_class_code, " %s %s(", im_return_type, imjni_name);
         Delete(imjni_name);
 //        Printf(wrapper_name, "%s%s_%%f", jnipackage, jniname);
 
@@ -2590,7 +2604,9 @@ public:
                 Delete(ex_overloaded_name);
                 Delete(excode);
             } else {
-                Replaceall(imcall, "$imfuncname", intermediary_function_name);
+                String *imfunction_name = makeValidIntermediateName(intermediary_function_name);
+                Replaceall(imcall, "$imfuncname", imfunction_name);
+                Delete(imfunction_name);
             }
 
             Replaceall(tm, "$jnicall", imcall);
@@ -2640,7 +2656,6 @@ public:
 
         if (proxy_flag) {
             String *overloaded_name = getOverloadedName(n);
-            String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
             String *imcall = NewString("");
 
             const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
@@ -2652,7 +2667,14 @@ public:
             Printf(function_code, "  %s convenience init(", methodmods);
             Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
 
-            Printv(imcall, mangled_overname, "(", NIL);
+            String *raw_im_name = NewString("new_");
+            Append(raw_im_name, overloaded_name);
+            String *valid_im_name = makeValidIntermediateName(raw_im_name);
+
+            Printv(imcall, valid_im_name, "(", NIL);
+
+            Delete(valid_im_name);
+            Delete(raw_im_name);
 
             /* Attach the non-standard typemaps to the parameter list */
             Swig_typemap_attach_parms("in", l, NULL);
@@ -2825,7 +2847,14 @@ public:
         String *symname = Getattr(n, "sym:name");
 
         if (proxy_flag) {
-            Printv(destructor_call, Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
+            String *raw_im_name = NewString("delete_");
+            Append(raw_im_name, symname);
+            String *valid_im_name = makeValidIntermediateName(raw_im_name);
+
+            Printv(destructor_call, valid_im_name, "(swigCPtr)", NIL);
+            Delete(valid_im_name);
+            Delete(raw_im_name);
+
             generateThrowsClause(n, destructor_throws_clause);
         }
         return SWIG_OK;
