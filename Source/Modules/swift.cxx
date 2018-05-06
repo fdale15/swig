@@ -2501,7 +2501,7 @@ public:
                 if ((tm = Getattr(p, "tmap:javain"))) {
                     addThrows(n, "tmap:javain", p);
                     substituteClassname(pt, tm);
-//                    Replaceall(tm, "$javainput", arg);
+                    Replaceall(tm, "$javainput", arg);
                     String *pre = Getattr(p, "tmap:javain:pre");
                     if (pre) {
                         substituteClassname(pt, pre);
