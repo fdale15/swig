@@ -82,12 +82,12 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jtype) bool,               const bool &               "Bool"
 %typemap(jtype) char,               const char &               "Character"
 %typemap(jtype) signed char,        const signed char &        "Byte"
-%typemap(jtype) unsigned char,      const unsigned char &      "Int"
-%typemap(jtype) short,              const short &              "Int"
-%typemap(jtype) unsigned short,     const unsigned short &     "Int"
-%typemap(jtype) int,                const int &                "Int"
-%typemap(jtype) unsigned int,       const unsigned int &       "Long"
-%typemap(jtype) long,               const long &               "Long"
+%typemap(jtype) unsigned char,      const unsigned char &      "Int32"
+%typemap(jtype) short,              const short &              "Int32"
+%typemap(jtype) unsigned short,     const unsigned short &     "Int32"
+%typemap(jtype) int,                const int &                "Int32"
+%typemap(jtype) unsigned int,       const unsigned int &       "Int64"
+%typemap(jtype) long,               const long &               "Int64"
 %typemap(jtype) unsigned long,      const unsigned long &      "UInt64"
 %typemap(jtype) long long,          const long long &          "Int64"
 %typemap(jtype) unsigned long long, const unsigned long long & "UInt64"
@@ -98,14 +98,14 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) bool,               const bool &               "Bool"
 %typemap(jstype) char,               const char &               "Character"
 %typemap(jstype) signed char,        const signed char &        "Byte"
-%typemap(jstype) unsigned char,      const unsigned char &      "Int"
-%typemap(jstype) short,              const short &              "Int"
-%typemap(jstype) unsigned short,     const unsigned short &     "Int"
-%typemap(jstype) int,                const int &                "Int"
-%typemap(jstype) unsigned int,       const unsigned int &       "Long"
-%typemap(jstype) long,               const long &               "Long"
+%typemap(jstype) unsigned char,      const unsigned char &      "Int32"
+%typemap(jstype) short,              const short &              "Int32"
+%typemap(jstype) unsigned short,     const unsigned short &     "Int32"
+%typemap(jstype) int,                const int &                "Int32"
+%typemap(jstype) unsigned int,       const unsigned int &       "Int64"
+%typemap(jstype) long,               const long &               "Int64"
 %typemap(jstype) unsigned long,      const unsigned long &      "UInt64"
-%typemap(jstype) long long,          const long long &          "Long"
+%typemap(jstype) long long,          const long long &          "Int64"
 %typemap(jstype) unsigned long long, const unsigned long long & "UInt64"
 %typemap(jstype) float,              const float &              "Float"
 %typemap(jstype) double,             const double &             "Double"
@@ -114,14 +114,14 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jboxtype) bool,               const bool &               "Bool"
 %typemap(jboxtype) char,               const char &               "Character"
 %typemap(jboxtype) signed char,        const signed char &        "Byte"
-%typemap(jboxtype) unsigned char,      const unsigned char &      "Int"
-%typemap(jboxtype) short,              const short &              "Int"
-%typemap(jboxtype) unsigned short,     const unsigned short &     "Int"
-%typemap(jboxtype) int,                const int &                "Int"
-%typemap(jboxtype) unsigned int,       const unsigned int &       "Long"
-%typemap(jboxtype) long,               const long &               "Long"
+%typemap(jboxtype) unsigned char,      const unsigned char &      "Int32"
+%typemap(jboxtype) short,              const short &              "Int32"
+%typemap(jboxtype) unsigned short,     const unsigned short &     "Int32"
+%typemap(jboxtype) int,                const int &                "Int32"
+%typemap(jboxtype) unsigned int,       const unsigned int &       "Int64"
+%typemap(jboxtype) long,               const long &               "Int64"
 %typemap(jboxtype) unsigned long,      const unsigned long &      "UInt64"
-%typemap(jboxtype) long long,          const long long &          "Long"
+%typemap(jboxtype) long long,          const long long &          "Int64"
 %typemap(jboxtype) unsigned long long, const unsigned long long & "UInt64"
 %typemap(jboxtype) float,              const float &              "Float"
 %typemap(jboxtype) double,             const double &             "Double"
@@ -1150,21 +1150,21 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     $jnicall;
   }
 %typemap(javaout) SWIGTYPE {
-    return new $&javaclassname($jnicall, true);
+    return $&javaclassname($jnicall, true)
   }
 %typemap(javaout) SWIGTYPE & {
-    return new $javaclassname($jnicall, $owner);
+    return $javaclassname($jnicall, $owner)
   }
 %typemap(javaout) SWIGTYPE && {
-    return new $javaclassname($jnicall, $owner);
+    return $javaclassname($jnicall, $owner)
   }
 %typemap(javaout) SWIGTYPE *, SWIGTYPE [] {
-    long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $javaclassname(cPtr, $owner);
+    let cPtr: Int64 = $jnicall
+    return (cPtr == 0) ? nil : $javaclassname(cPtr, $owner)
   }
 %typemap(javaout) SWIGTYPE (CLASS::*) {
-    String cMemberPtr = $jnicall;
-    return (cMemberPtr == null) ? null : new $javaclassname(cMemberPtr, $owner);
+    var cMemberPtr: String = $jnicall;
+    return (cMemberPtr == null) ? null : $javaclassname(cMemberPtr, $owner)
   }
 
 /* Pointer reference typemaps */
@@ -1204,29 +1204,29 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %define SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private var swigCPtr: Long
-  protected var swigCMemOwn: Bool
+  private var swigCPtr: Int64
+  internal var swigCMemOwn: Bool
 
-  PTRCTOR_VISIBILITY init(cPtr: Long, cMemoryOwn: Bool) {
+  PTRCTOR_VISIBILITY init(cPtr: Int64, cMemoryOwn: Bool) {
     swigCMemOwn = cMemoryOwn
     swigCPtr = cPtr
   }
 
-  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Long {
+  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Int64 {
     return (obj == null) ? 0 : obj.swigCPtr
   }
 %}
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private var swigCPtr: Long
+  private var swigCPtr: Int64
 
-  PTRCTOR_VISIBILITY init(cPtr: Long, cMemoryOwn: Bool) {
+  PTRCTOR_VISIBILITY init(cPtr: Int64, cMemoryOwn: Bool) {
     self.init($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn)
     swigCPtr = cPtr
   }
 
-  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Long {
+  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Int64 {
     return (obj == null) ? 0 : obj.swigCPtr
   }
 %}
@@ -1235,9 +1235,9 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %define SWIG_JAVABODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
 %typemap(javabody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
-  private var swigCPtr: Long
+  private var swigCPtr: Int64
 
-  PTRCTOR_VISIBILITY init(cPtr: Long, futureUse: Bool) {
+  PTRCTOR_VISIBILITY init(cPtr: Int64, futureUse: Bool) {
     swigCPtr = cPtr
   }
 
@@ -1245,7 +1245,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     swigCPtr = 0
   }
 
-  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Long {
+  CPTR_VISIBILITY static func getCPtr(obj: $javaclassname) -> Int64 {
     return (obj == null) ? 0 : obj.swigCPtr
   }
 %}
@@ -1269,8 +1269,8 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 /* Set the default javabody typemaps to use protected visibility.
    Use the macros to change to public if using multiple modules. */
-SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
-SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
+SWIG_JAVABODY_PROXY(internal, internal, SWIGTYPE)
+SWIG_JAVABODY_TYPEWRAPPER(internal, internal, internal, SWIGTYPE)
 
 %typemap(javafinalize) SWIGTYPE %{
   deinit {
@@ -1300,8 +1300,8 @@ SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, OWNERSHIP, WEAKREF);") TYPENAME {
-    this($imcall, OWNERSHIP);$directorconnect
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(self, swigCPtr, OWNERSHIP, WEAKREF)\n") TYPENAME {
+    self.init($imcall, OWNERSHIP)$directorconnect
   }
 %enddef
 
@@ -1334,23 +1334,23 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
-  protected void $methodname() {
-    swigCMemOwn = false;
-    $jnicall;
+  internal void $methodname() {
+    swigCMemOwn = false
+    $jnicall
   }
 %}
 
 %typemap(directorowner_release, methodname="swigReleaseOwnership") SWIGTYPE %{
   public void $methodname() {
-    swigCMemOwn = false;
-    $jnicall;
+    swigCMemOwn = false
+    $jnicall
   }
 %}
 
 %typemap(directorowner_take, methodname="swigTakeOwnership") SWIGTYPE %{
   public void $methodname() {
-    swigCMemOwn = true;
-    $jnicall;
+    swigCMemOwn = true
+    $jnicall
   }
 %}
 

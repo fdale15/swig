@@ -389,7 +389,7 @@ public:
 
         // Make the intermediary class and module class names. The intermediary class name can be set in the module directive.
         if (!imclass_name) {
-            imclass_name = NewStringf("%sJNI", Getattr(n, "name"));
+            imclass_name = NewStringf("%sSwiftInterface", Getattr(n, "name"));
             module_class_name = Copy(Getattr(n, "name"));
         } else {
             // Rename the module name if it is the same as intermediary class name - a backwards compatibility solution
@@ -468,7 +468,7 @@ public:
             Replaceall(package_path, ".", "/");
         }
         String *jniname = makeValidJniName(imclass_name);
-        Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, jniname);
+        Printf(wrapper_name, "Swift_%s%s_%%f", jnipackage, jniname);
         Delete(jniname);
 
         Swig_name_register("wrapper", Char(wrapper_name));
@@ -493,7 +493,7 @@ public:
         }
         // Generate the intermediary class
         {
-            String *filen = NewStringf("%s%s.swift", outputDirectory(imclass_package), imclass_name);
+            String *filen = NewStringf("%s%s.h", outputDirectory(imclass_package), imclass_name);
             File *f_im = NewFile(filen, "w", SWIG_output_files());
             if (!f_im) {
                 FileErrorDisplay(filen);
@@ -506,25 +506,26 @@ public:
             // Start writing out the intermediary class file
             emitBanner(f_im);
 
-            if (imclass_package && package)
-                Printf(f_im, "package %s.%s;", package, imclass_package);
-            else if (imclass_package)
-                Printf(f_im, "package %s;", imclass_package);
-            else if (package)
-                Printf(f_im, "package %s;\n", package);
-
-            if (imclass_imports)
-                Printf(f_im, "%s\n", imclass_imports);
-
-            if (Len(imclass_class_modifiers) > 0)
-                Printf(f_im, "%s ", imclass_class_modifiers);
-            Printf(f_im, "%s ", imclass_name);
-
-            if (imclass_baseclass && *Char(imclass_baseclass))
-                Printf(f_im, ": %s ", imclass_baseclass);
-            if (Len(imclass_interfaces) > 0)
-                Printv(f_im, ": ", imclass_interfaces, " ", NIL);
-            Printf(f_im, "{\n");
+// A C header is all we need, no classes.
+//            if (imclass_package && package)
+//                Printf(f_im, "package %s.%s;", package, imclass_package);
+//            else if (imclass_package)
+//                Printf(f_im, "package %s;", imclass_package);
+//            else if (package)
+//                Printf(f_im, "package %s;\n", package);
+//
+//            if (imclass_imports)
+//                Printf(f_im, "%s\n", imclass_imports);
+//
+//            if (Len(imclass_class_modifiers) > 0)
+//                Printf(f_im, "%s ", imclass_class_modifiers);
+//            Printf(f_im, "%s ", imclass_name);
+//
+//            if (imclass_baseclass && *Char(imclass_baseclass))
+//                Printf(f_im, ": %s ", imclass_baseclass);
+//            if (Len(imclass_interfaces) > 0)
+//                Printv(f_im, ": ", imclass_interfaces, " ", NIL);
+//            Printf(f_im, "{\n");
 
             // Add the intermediary class methods
             Replaceall(imclass_class_code, "$module", module_class_name);
@@ -544,7 +545,7 @@ public:
                 Printf(f_im, "  }()\n");
             }
             // Finish off the class
-            Printf(f_im, "}\n");
+//            Printf(f_im, "}\n");
             Delete(f_im);
         }
 
@@ -633,8 +634,8 @@ public:
 
         if (upcasts_code)
             Printv(f_wrappers, upcasts_code, NIL);
-
-        emitDirectorUpcalls();
+// FIXME: remove
+//        emitDirectorUpcalls();
 
         Printf(f_wrappers, "#ifdef __cplusplus\n");
         Printf(f_wrappers, "}\n");
@@ -919,7 +920,7 @@ public:
             }
         }
 
-        Printf(imclass_class_code, "  internal static %s %s(", im_return_type, overloaded_name);
+        Printf(imclass_class_code, " %s %s(", im_return_type, overloaded_name);
 
         num_arguments = emit_num_arguments(l);
 
@@ -958,7 +959,7 @@ public:
             Printf(imclass_class_code, "%s %s", im_param_type, arg);
 
             // Add parameter to C function
-            Printv(f->def, "paramType:", c_param_type, " ", arg, NIL);
+            Printv(f->def, c_param_type, " ", arg, NIL);
 
             ++gencomma;
 
@@ -1306,7 +1307,7 @@ public:
                 } else {
                     // Global enums are defined in their own file
                     String *output_directory = outputDirectory(nspace);
-                    String *filen = NewStringf("%s%s.java", output_directory, symname);
+                    String *filen = NewStringf("%s%s.swift", output_directory, symname);
                     File *f_enum = NewFile(filen, "w", SWIG_output_files());
                     if (!f_enum) {
                         FileErrorDisplay(filen);
@@ -1997,25 +1998,26 @@ public:
         if (*Char(interface_upcasts))
             Printv(proxy_class_def, interface_upcasts, NIL);
 
+//FIXME: No directors
         /* Insert directordisconnect typemap, if this class has directors enabled */
         /* Also insert the swigTakeOwnership and swigReleaseOwnership methods */
-        if (feature_director) {
-            String *destruct_jnicall, *release_jnicall, *take_jnicall;
-            String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
-
-            destruct_jnicall = NewStringf("%s()", destruct_methodname);
-            release_jnicall = NewStringf("%s.%s(this, swigCPtr, false)", full_imclass_name, changeown_method_name);
-            take_jnicall = NewStringf("%s.%s(this, swigCPtr, true)", full_imclass_name, changeown_method_name);
-
-            emitCodeTypemap(n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
-            emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
-            emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall);
-
-            Delete(destruct_jnicall);
-            Delete(changeown_method_name);
-            Delete(release_jnicall);
-            Delete(take_jnicall);
-        }
+//        if (feature_director) {
+//            String *destruct_jnicall, *release_jnicall, *take_jnicall;
+//            String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
+//
+//            destruct_jnicall = NewStringf("%s()", destruct_methodname);
+//            release_jnicall = NewStringf("%s.%s(self, swigCPtr, false)", full_imclass_name, changeown_method_name);
+//            take_jnicall = NewStringf("%s.%s(self, swigCPtr, true)", full_imclass_name, changeown_method_name);
+//
+//            emitCodeTypemap(n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
+//            emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
+//            emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall);
+//
+//            Delete(destruct_jnicall);
+//            Delete(changeown_method_name);
+//            Delete(release_jnicall);
+//            Delete(take_jnicall);
+//        }
 
         Delete(interface_upcasts);
         Delete(interface_list);
@@ -2171,7 +2173,7 @@ public:
             // Each outer proxy class goes into a separate file
             if (!has_outerclass) {
                 String *output_directory = outputDirectory(nspace);
-                String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
+                String *filen = NewStringf("%s%s.swift", output_directory, proxy_class_name);
                 f_proxy = NewFile(filen, "w", SWIG_output_files());
                 if (!f_proxy) {
                     FileErrorDisplay(filen);
@@ -2184,14 +2186,15 @@ public:
                 // Start writing out the proxy class file
                 emitBanner(f_proxy);
 
-                if (package || nspace) {
-                    Printf(f_proxy, "package ");
-                    if (package)
-                        Printv(f_proxy, package, nspace ? "." : "", NIL);
-                    if (nspace)
-                        Printv(f_proxy, nspace, NIL);
-                    Printf(f_proxy, ";\n");
-                }
+// No packages for swift.
+//                if (package || nspace) {
+//                    Printf(f_proxy, "package ");
+//                    if (package)
+//                        Printv(f_proxy, package, nspace ? "." : "", NIL);
+//                    if (nspace)
+//                        Printv(f_proxy, nspace, NIL);
+//                    Printf(f_proxy, ";\n");
+//                }
             }
             else
                 ++nesting_depth;
@@ -2282,7 +2285,8 @@ public:
                 f_interface = 0;
             }
 
-            emitDirectorExtraMethods(n);
+            //FIXME: remove
+//            emitDirectorExtraMethods(n);
 
             Delete(interface_class_code);
             interface_class_code = old_interface_class_code;
@@ -2447,7 +2451,7 @@ public:
             Swig_typemap_attach_parms("jstype", this_parm, NULL);
 
             if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
-                Printf(imcall, ", this");
+                Printf(imcall, ", self");
 
             Delete(this_parm);
             Delete(name);
@@ -3390,8 +3394,9 @@ public:
         // Start writing out the type wrapper class file
         emitBanner(f_swigtype);
 
-        if (package)
-            Printf(f_swigtype, "package %s;\n", package);
+// I don't think swift uses packages like java.
+//        if (package)
+//            Printf(f_swigtype, "package %s;\n", package);
 
         // Pure Java baseclass and interfaces
         const String *pure_baseclass = typemapLookup(n, "javabase", type, WARN_NONE);
@@ -3401,8 +3406,8 @@ public:
         Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),	// Import statements
                "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
                " $javaclassname",	// Class name and bases
-               *Char(pure_baseclass) ? " extends " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
-                                                                         " implements " : "", pure_interfaces, " {", typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+               *Char(pure_baseclass) ? ": " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
+                                                                         ": " : "", pure_interfaces, " {", typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
                typemapLookup(n, "javacode", type, WARN_NONE),	// extra Java code
                "}\n", "\n", NIL);
 
@@ -3645,149 +3650,6 @@ public:
    * emitDirectorUpcalls()
    *--------------------------------------------------------------------*/
 
-    void emitDirectorUpcalls() {
-        if (n_dmethods) {
-            Wrapper *w = NewWrapper();
-            String *jni_imclass_name = makeValidJniName(imclass_name);
-            String *swig_module_init = NewString("swig_module_init");
-            String *swig_module_init_jni = makeValidJniName(swig_module_init);
-            String *dmethod_data = NewString("");
-            int n_methods = 0;
-            Iterator udata_iter;
-
-            udata_iter = First(dmethods_seq);
-            while (udata_iter.item) {
-                UpcallData *udata = udata_iter.item;
-                Printf(dmethod_data, "  { \"%s\", \"%s\" }", Getattr(udata, "imclass_method"), Getattr(udata, "imclass_fdesc"));
-                ++n_methods;
-
-                udata_iter = Next(udata_iter);
-
-                if (udata_iter.item)
-                    Putc(',', dmethod_data);
-                Putc('\n', dmethod_data);
-            }
-
-            Printf(f_runtime, "namespace Swig {\n");
-            Printf(f_runtime, "  namespace {\n");
-            Printf(f_runtime, "    jclass jclass_%s = NULL;\n", imclass_name);
-            Printf(f_runtime, "    jmethodID director_method_ids[%d];\n", n_methods);
-            Printf(f_runtime, "  }\n");
-            Printf(f_runtime, "}\n");
-
-            Printf(w->def, "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls) {", jnipackage, jni_imclass_name, swig_module_init_jni);
-            Printf(w->code, "static struct {\n");
-            Printf(w->code, "  const char *method;\n");
-            Printf(w->code, "  const char *signature;\n");
-            Printf(w->code, "} methods[%d] = {\n", n_methods);
-            Printv(w->code, dmethod_data, NIL);
-            Printf(w->code, "};\n");
-
-            Wrapper_add_local(w, "i", "int i");
-
-            Printf(w->code, "Swig::jclass_%s = (jclass) jenv->NewGlobalRef(jcls);\n", imclass_name);
-            Printf(w->code, "if (!Swig::jclass_%s) return;\n", imclass_name);
-            Printf(w->code, "for (i = 0; i < (int) (sizeof(methods)/sizeof(methods[0])); ++i) {\n");
-            Printf(w->code, "  Swig::director_method_ids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
-            Printf(w->code, "  if (!Swig::director_method_ids[i]) return;\n");
-            Printf(w->code, "}\n");
-
-            Printf(w->code, "}\n");
-
-            Wrapper_print(w, f_wrappers);
-            Delete(dmethod_data);
-            Delete(swig_module_init_jni);
-            Delete(swig_module_init);
-            Delete(jni_imclass_name);
-            DelWrapper(w);
-        }
-    }
-
-    /*----------------------------------------------------------------------
-   * emitDirectorExtraMethods()
-   *
-   * This is where the director connect method is generated.
-   *--------------------------------------------------------------------*/
-    void emitDirectorExtraMethods(Node *n) {
-        if (!Swig_directorclass(n))
-            return;
-
-        // Output the director connect method:
-        String *jni_imclass_name = makeValidJniName(imclass_name);
-        String *norm_name = SwigType_namestr(Getattr(n, "name"));
-        String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
-        String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
-        String *smartptr = Getattr(n, "feature:smartptr");
-        String *dirClassName = directorClassName(n);
-        Wrapper *code_wrap;
-
-        Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
-               swig_director_connect, full_proxy_class_name);
-
-        code_wrap = NewWrapper();
-        Printf(code_wrap->def,
-               "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
-                       "jboolean jweak_global) {\n", jnipackage, jni_imclass_name, swig_director_connect_jni);
-
-        if (smartptr) {
-            Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
-            Printf(code_wrap->code, "  (void)jcls;\n");
-            Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
-            Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-            Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
-        }
-        else {
-            Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-            Printf(code_wrap->code, "  (void)jcls;\n");
-            Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
-        }
-
-        Printf(code_wrap->code, "  director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
-                "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
-        Printf(code_wrap->code, "}\n");
-
-        Wrapper_print(code_wrap, f_wrappers);
-        DelWrapper(code_wrap);
-
-        Delete(swig_director_connect_jni);
-        Delete(swig_director_connect);
-
-        // Output the swigReleaseOwnership, swigTakeOwnership methods:
-        String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
-        String *changeown_jnimethod_name = makeValidJniName(changeown_method_name);
-
-        Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean take_or_release);\n", changeown_method_name, full_proxy_class_name);
-
-        code_wrap = NewWrapper();
-        Printf(code_wrap->def,
-               "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
-               jnipackage, jni_imclass_name, changeown_jnimethod_name);
-
-        if (Len(smartptr)) {
-            Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
-            Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
-            Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-            Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
-        } else {
-            Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-            Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
-        }
-
-        Printf(code_wrap->code, "  (void)jcls;\n");
-        Printf(code_wrap->code, "  if (director) {\n");
-        Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
-        Printf(code_wrap->code, "  }\n");
-        Printf(code_wrap->code, "}\n");
-
-        Wrapper_print(code_wrap, f_wrappers);
-        DelWrapper(code_wrap);
-
-        Delete(changeown_method_name);
-        Delete(changeown_jnimethod_name);
-        Delete(norm_name);
-        Delete(dirClassName);
-        Delete(jni_imclass_name);
-    }
 
     /*----------------------------------------------------------------------
    * emitCodeTypemap()
@@ -4063,7 +3925,7 @@ public:
             String *jenvstr = NewString("jenv");
             String *jobjstr = NewString("swigjobj");
 
-            Wrapper_add_localv(w, "swigjnienv", "JNIEnvWrapper", "swigjnienv(this)", NIL, NIL);
+            Wrapper_add_localv(w, "swigjnienv", "JNIEnvWrapper", "swigjnienv(self)", NIL, NIL);
             Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= swigjnienv.getJNIEnv()", NIL);
             Wrapper_add_localv(w, jobjstr, "jobject", jobjstr, "= (jobject) NULL", NIL);
             Delete(jenvstr);
@@ -4084,7 +3946,7 @@ public:
             }
             Delete(super_call);
         } else {
-            Printf(w->code, "SWIG_JavaThrowException(JNIEnvWrapper(this).getJNIEnv(), SWIG_JavaDirectorPureVirtual, ");
+            Printf(w->code, "SWIG_JavaThrowException(JNIEnvWrapper(self).getJNIEnv(), SWIG_JavaDirectorPureVirtual, ");
             Printf(w->code, "\"Attempted to invoke pure virtual method %s::%s.\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
 
             /* Make sure that we return something in the case of a pure
@@ -4133,7 +3995,7 @@ public:
             String *c_decl = NewString("");
             String *arg = NewString("");
 
-            Printf(arg, "j%s", ln);
+            Printf(arg, "%s", ln);
 
             /* Add various typemap's 'throws' clauses */
             addThrows(n, "tmap:directorin", p);
