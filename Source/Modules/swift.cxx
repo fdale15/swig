@@ -434,26 +434,6 @@ public:
 
         Printf(f_runtime, "\n\n#ifndef SWIGSWIFT\n#define SWIGSWIFT\n#endif\n\n");
 
-        if (directorsEnabled()) {
-            Printf(f_runtime, "#define SWIG_DIRECTORS\n");
-
-            /* Emit initial director header and director code: */
-            Swig_banner(f_directors_h);
-            Printf(f_directors_h, "\n");
-            Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
-            Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
-
-            Printf(f_directors, "\n\n");
-            Printf(f_directors, "/* ---------------------------------------------------\n");
-            Printf(f_directors, " * C++ director class methods\n");
-            Printf(f_directors, " * --------------------------------------------------- */\n\n");
-            if (outfile_h) {
-                String *filename = Swig_file_filename(outfile_h);
-                Printf(f_directors, "#include \"%s\"\n\n", filename);
-                Delete(filename);
-            }
-        }
-
         Printf(f_runtime, "\n");
 
         String *wrapper_name = NewString("");
@@ -549,7 +529,7 @@ public:
             Delete(f_im);
         }
 
-        // Generate the Java module class
+        // Generate the Swift module class
         {
             String *filen = NewStringf("%s%s.swift", SWIG_output_directory(), module_class_name);
             File *f_module = NewFile(filen, "w", SWIG_output_files());
@@ -920,7 +900,11 @@ public:
             }
         }
 
-        Printf(imclass_class_code, " %s %s(", im_return_type, overloaded_name);
+        String *imjni_name = makeValidJniName(overloaded_name);
+        Printf(imclass_class_code, " %s Swift_%s%s_%s(", im_return_type, jnipackage, imclass_name, imjni_name);
+        Delete(imjni_name);
+//        Printf(wrapper_name, "%s%s_%%f", jnipackage, jniname);
+
 
         num_arguments = emit_num_arguments(l);
 
