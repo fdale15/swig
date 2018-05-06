@@ -169,7 +169,7 @@
  *   java.nio.ByteBuffer b = ByteBuffer.allocateDirect(20); 
  *   modulename.foo(b);
  */
-%typemap(jni) unsigned char *NIOBUFFER "jobject"  
+%typemap(jni) unsigned char *NIOBUFFER "jobject"
 %typemap(jtype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
 %typemap(jstype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
 %typemap(javain,

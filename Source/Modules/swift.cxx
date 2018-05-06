@@ -938,8 +938,10 @@ public:
             }
 
             /* Add parameter to intermediary class method */
-            if (gencomma)
+            if (gencomma) {
                 Printf(imclass_class_code, ", ");
+                Printf(f->def, ", ");
+            }
             Printf(imclass_class_code, "%s %s", im_param_type, arg);
 
             // Add parameter to C function
@@ -947,15 +949,16 @@ public:
 
             ++gencomma;
 
+            //TODO: Find out if this is necessary.
             // Premature garbage collection prevention parameter
-            if (!is_destructor) {
-                String *pgc_parameter = prematureGarbageCollectionPreventionParameter(pt, p);
-                if (pgc_parameter) {
-                    Printf(imclass_class_code, ", %s %s_", pgc_parameter, arg);
-                    Printf(f->def, ", jobject %s_", arg);
-                    Printf(f->code, "    (void)%s_;\n", arg);
-                }
-            }
+//            if (!is_destructor) {
+//                String *pgc_parameter = prematureGarbageCollectionPreventionParameter(pt, p);
+//                if (pgc_parameter) {
+//                    Printf(imclass_class_code, ", %s %s_", pgc_parameter, arg);
+//                    Printf(f->def, ", jobject %s_", arg);
+//                    Printf(f->code, "    (void)%s_;\n", arg);
+//                }
+//            }
             // Get typemap for this argument
             if ((tm = Getattr(p, "tmap:in"))) {
                 addThrows(n, "tmap:in", p);
@@ -2434,8 +2437,9 @@ public:
             Swig_typemap_attach_parms("jtype", this_parm, NULL);
             Swig_typemap_attach_parms("jstype", this_parm, NULL);
 
-            if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
-                Printf(imcall, ", self");
+// TODO: See if this is necessary.
+//            if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
+//                Printf(imcall, ", self");
 
             Delete(this_parm);
             Delete(name);
