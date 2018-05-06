@@ -4,7 +4,7 @@
  * Java typemaps
  * ----------------------------------------------------------------------------- */
 
-%include <javahead.swg>
+%include <swifthead.swg>
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
