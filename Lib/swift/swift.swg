@@ -1120,10 +1120,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                   unsigned long long, const unsigned long long &,
                   float,              const float &,
                   double,             const double & {
-    return $jnicall;
+    return $jnicall
   }
 %typemap(javaout) char *, char *&, char[ANY], char[] {
-    return $jnicall;
+    return $jnicall
   }
 %typemap(javaout) bool,
                                char,
@@ -1144,10 +1144,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                                float[],
                                double[],
                                long[] {
-    return $jnicall;
+    return $jnicall
   }
 %typemap(javaout) void {
-    $jnicall;
+    $jnicall
   }
 %typemap(javaout) SWIGTYPE {
     return $&javaclassname($jnicall, true)
@@ -1163,7 +1163,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     return (cPtr == 0) ? nil : $javaclassname(cPtr, $owner)
   }
 %typemap(javaout) SWIGTYPE (CLASS::*) {
-    var cMemberPtr: String = $jnicall;
+    var cMemberPtr: String = $jnicall
     return (cMemberPtr == null) ? null : $javaclassname(cMemberPtr, $owner)
   }
 
@@ -1173,8 +1173,8 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(jstype) SWIGTYPE *const& "$*javaclassname"
 %typemap(javain) SWIGTYPE *const& "$*javaclassname.getCPtr($javainput)"
 %typemap(javaout) SWIGTYPE *const& {
-    long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner);
+    long cPtr = $jnicall
+    return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner)
   }
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;

@@ -2660,7 +2660,7 @@ public:
             tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
             Printf(im_return_type, "%s", tm);
 
-            Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
+            Printf(function_code, "  %s init(", methodmods);
             Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
 
             Printv(imcall, full_imclass_name, ".", mangled_overname, "(", NIL);
