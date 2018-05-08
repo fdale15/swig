@@ -627,12 +627,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 }
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is nil");
+    // SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is nil");
     return $null;
   } %}
 %typemap(in) SWIGTYPE && %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is nil");
+    //SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is nil");
     return $null;
   } %}
 %typemap(out) SWIGTYPE *
