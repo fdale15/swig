@@ -22,7 +22,11 @@ class string;
 // string
 %typemap(jni) string "const char *"
 %typemap(jtype) string "string"
+
 %typemap(jstype) string "String"
+%typemap(jstype) string * "String"
+%typemap(jstype) string & "String"
+
 %typemap(javadirectorin) string "$jniinput"
 %typemap(javadirectorout) string "$javacall"
 
@@ -59,8 +63,16 @@ class string;
 %typemap(javain) string "$javainput"
 
 %typemap(javaout) string {
-    return String.fromCString($jnicall)
-  }
+    return String.init(cString: $jnicall)
+}
+
+%typemap(javaout) string *{
+    return String.init(cString: $jnicall)
+}
+
+%typemap(javaout) string &{
+    return String.init(cString: $jnicall)
+}
 
 %typemap(typecheck) string = char *;
 
@@ -108,10 +120,6 @@ class string;
 %{ $result = $1->c_str(); %}
 
 %typemap(javain) const string & "$javainput"
-
-%typemap(javaout) const string & {
-    return $jnicall;
-}
 
 //Convert the Swift string back to a C-style string.
 %typemap(javain) char * %{$javainput.cString(using: String.Encoding.utf8)%}
