@@ -81,7 +81,7 @@
     return swigName
   }
 
-  public static func swigToEnum(swigValue: Int32) -> $javaclassname? {
+  public static func swigToEnum(_ swigValue: Int32) -> $javaclassname? {
     if (swigValue < swigValues.count && swigValue >= 0 && $javaclassname.swigValues[Int(swigValue)].swigValue == swigValue) {
       return $javaclassname.swigValues[Int(swigValue)]
     }

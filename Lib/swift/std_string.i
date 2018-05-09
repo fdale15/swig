@@ -20,10 +20,13 @@ namespace std {
 class string;
 
 // string
-%typemap(jni) string "const char *"
+%typemap(jni) string "char *"
+%typemap(jni) string & "char *"
+%typemap(jni) string const "const char *"
 
-%typemap(jtype) string "char *"
-%typemap(jtype) string const "char *"
+%typemap(jtype) string       "const char *"
+%typemap(jtype) string const "const char *"
+%typemap(jtype) string &      "const char *"
 
 %typemap(jstype) string "String"
 %typemap(jstype) string * "String"
@@ -34,33 +37,23 @@ class string;
 
 %typemap(in) string 
 %{  if(!$input) {
-    //  SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
+       assert(false);
      return $null;
     }
-    // const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
-    if (!$1_pstr) return $null;
-    $1.assign($1_pstr);
+
+    if (!$input) return $null;
+    $1.assign($input);
+
+    //I think swift will take care of this.
     // jenv->ReleaseStringUTFChars($input, $1_pstr);
 %}
 
-%typemap(directorout) string 
-%{ if(!$input) {
-     if (!jenv->ExceptionCheck()) {
-    //    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     }
-     return $null;
-   }
-//    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-   if (!$1_pstr) return $null;
-   $result.assign($1_pstr);
-//    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
-
-// %typemap(directorin,descriptor="Ljava/lang/String;") string 
-// %{ $input = jenv->NewStringUTF($1.c_str());
-//    Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(out) string 
-%{ $result = $1.c_str(); %}
+%{ 
+    $result = new char[result.size()+1];
+    std::strcpy(const_cast<char*>($result), result.c_str());
+%}
 
 %typemap(javain) string "$javainput"
 
@@ -76,6 +69,12 @@ class string;
     return String.init(cString: $jnicall)
 }
 
+%typemap(javaout) string const {
+    //Maybe we should do all strings this way and hinge the delete behavior based on references.
+    let ptr = $jnicall
+    return String.init(bytesNoCopy: UnsafeMutableRawPointer(mutating: ptr!), length: strlen(ptr), encoding: String.Encoding.utf8, freeWhenDone: true)!
+}
+
 %typemap(typecheck) string = char *;
 
 %typemap(throws) string
@@ -84,7 +83,7 @@ class string;
 
 // const string &
 %typemap(jni) const string & "const char *"
-%typemap(jtype) const string & "char *"
+%typemap(jtype) const string & "const char *"
 %typemap(jstype) const string & "String"
 %typemap(javadirectorin) const string & "$jniinput"
 
@@ -92,41 +91,22 @@ class string;
 
 %typemap(in) const string &
 %{ if(!$input) {
-     //SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
+     assert(false);
      return $null;
    }
-//    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-//    if (!$1_pstr) return $null;
-   $*1_ltype $1_str($1_pstr);
+
+   $*1_ltype $1_str(p_$1);
    $1 = &$1_str;
-//    jenv->ReleaseStringUTFChars($input, $1_pstr); 
 %}
-
-// %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
-// %{ if(!$input) {
-//      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-//      return $null;
-//    }
-//    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-//    if (!$1_pstr) return $null;
-//    /* possible thread/reentrant code problem */
-//    static $*1_ltype $1_str;
-//    $1_str = $1_pstr;
-//    $result = &$1_str;
-//    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
-
-// %typemap(directorin,descriptor="Ljava/lang/String;") const string &
-// %{ $input = jenv->NewStringUTF($1.c_str());
-//    Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(out) const string & 
 %{ $result = $1->c_str(); %}
 
 //Convert the Swift string back to a C-style string.
-%typemap(javain) string %{UnsafePointer<Int8>.init($javainput)%}
-%typemap(javain) string & %{UnsafePointer<Int8>.init($javainput)%}
-%typemap(javain) string * %{UnsafePointer<Int8>.init($javainput)%}
-%typemap(javain) const string & %{UnsafePointer<Int8>.init($javainput)%}
+%typemap(javain) string %{$javainput%}
+%typemap(javain) string & %{$javainput)%}
+%typemap(javain) string * %{$javainput%}
+%typemap(javain) const string & %{$javainput%}
 
 %typemap(typecheck) const string & = char *;
 
